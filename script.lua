@@ -1,41 +1,67 @@
--- DIRECT ULTRA FPS BOOSTER
+-- SPECIAL FPS BOOSTER FOR FISH IT / FISCH (DIRECT CODE)
 local Lighting = game:GetService("Lighting")
-local Terrain = game:GetService("Workspace").Terrain
+local Workspace = game:GetService("Workspace")
+local Terrain = Workspace.Terrain
 
--- Paksa grafis ke level paling rendah
+-- 1. Paksa Engine Grafis Roblox ke Level Terendah
 settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+settings().Rendering.MeshCacheSize = 0
 
--- Matikan efek visual berat
+-- 2. Hapus Awan & Efek Cuaca Laut yang Berat
 pcall(function()
     Lighting.GlobalShadows = false
     Lighting.FogEnd = 9e9
+    Lighting.ClockTime = 12 -- Kunci di siang hari rata agar tidak memproses siklus malam
+    
     for _, obj in pairs(Lighting:GetChildren()) do
-        if obj:IsA("Sky") or obj:IsA("Atmosphere") or obj:IsA("PostEffect") then
+        if obj:IsA("Sky") or obj:IsA("Atmosphere") or obj:IsA("Clouds") or obj:IsA("PostEffect") then
             obj:Destroy()
         end
     end
 end)
 
--- Bersihkan objek berat di dunia game
-local function clean(v)
+-- 3. Hapus Efek Gelombang Air Laut & Dekorasi Pulau
+pcall(function()
+    Terrain.WaterWaveSize = 0
+    Terrain.WaterWaveSpeed = 0
+    Terrain.WaterReflectance = 0
+    Terrain.WaterTransparency = 0.5
+    sethiddenproperty(Terrain, "Decoration", false)
+end)
+
+-- 4. Optimasi Objek Pancingan, Partikel Air, dan Aset Map
+local function optimizeFishIt(v)
     pcall(function()
-        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+        -- Mematikan semua partikel cipratan air dan efek pancingan
+        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") then
             v.Enabled = false
-        elseif v:IsA("Decal") or v:IsA("Texture") then
-            v:Destroy()
+            
+        -- Mengubah struktur pulau & kapal menjadi plastik polos ringan
         elseif v:IsA("BasePart") or v:IsA("MeshPart") then
             v.Material = Enum.Material.SmoothPlastic
             v.CastShadow = false
+            v.Reflectance = 0
+            
+        -- Menghapus tekstur air/dinding dermaga agar menghemat RAM PC
+        elseif v:IsA("Decal") or v:IsA("Texture") then
+            v:Destroy()
         end
     end)
 end
 
-for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
-    clean(v)
+-- Eksekusi ke seluruh map yang sudah termuat
+for _, v in pairs(Workspace:GetDescendants()) do
+    optimizeFishIt(v)
 end
 
-game:GetService("Workspace").DescendantAdded:Connect(function(v)
-    clean(v)
+-- Deteksi otomatis jika ada efek/ikan baru yang muncul saat memancing
+Workspace.DescendantAdded:Connect(function(v)
+    optimizeFishIt(v)
 end)
 
-print("FPS Booster Sukses Dijalankan Secara Langsung!")
+-- 5. Buka Batasan FPS Delta PC
+if setfpscap then
+    setfpscap(120)
+end
+
+print("FPS Booster Khusus Fish It Berhasil Diaktifkan!")
