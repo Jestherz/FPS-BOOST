@@ -49,7 +49,6 @@ local function optimizeFishIt(v)
     end)
 end
 
--- Eksekusi ke seluruh map yang sudah termuat
 for _, v in pairs(Workspace:GetDescendants()) do
     optimizeFishIt(v)
 end
